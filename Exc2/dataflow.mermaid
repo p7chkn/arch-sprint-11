@@ -1,0 +1,48 @@
+flowchart LR
+    subgraph ClinicalDomain
+      ClientOperator((Client Operator)) -->|мед.данные| ClinicalServices[(Medical Services)]
+    end
+
+    subgraph FintechDomain
+      Fintech[(Fintech Services)]
+    end
+
+    subgraph AI_Domain
+      AI[(AI Services)]
+    end
+
+    subgraph DataPlatform
+      ETL[(ETL)]
+      DLake[(Data Lake)]
+      DWH[(DWH)]
+    end
+
+    subgraph AnalyticsDomain
+      DataMart[(Data Mart)]
+      BI[(BI Tools)]
+    end
+
+    %% ---------- Потоки ----------
+    %% Клинические/финансовые данные -> Шина
+    ClientOperator --мед.данные--> DataBus
+    Fintech --фин.данные--> DataBus
+
+    %% Шина -> ETL -> (обработка, обезличка) -> DWH/Lake
+    DataBus --> ETL
+    ETL --сырые--> DLake
+    DLake --сырые--> ETL
+    ETL --обработанные--> DWH
+
+    %% ETL может вернуть очищенные/обезличенные данные в шину, чтобы AI забрал их "после ETL"
+    DWH -- обработанные данные--> DataBus -- данные--> AI
+
+    %% AI -> результаты -> DataBus
+    AI --инсайты, прогнозы--> DataBus
+
+    %% DWH -> витрины -> BI/DataMart
+    DWH --данные для аналитики--> DataMart
+    DWH --данные для аналитики--> BI
+
+    %% Выдача отчётов
+    DataMart -->|отчёты/витрины| Sotrudnik((Сотрудник))
+    BI -->|дашборды/отчёты| Analitik((Аналитик))
